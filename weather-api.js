@@ -12,74 +12,75 @@ function getFormattedDate() {
     return `${year}-${month}-${day}`;
   }
 
- async function weekData(city,date){
-    const Date=date?date:getFormattedDate();
+ async function weekData(city){
     const weatherresponse = await axios({
         method: "get",
-        url: `https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${city}/${Date}?key=${process.env.API_KEY} `,
+        url: `https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${city}?key=${process.env.API_KEY} `,
     });
     const weatherdata = weatherresponse.data.days.slice(0,7);
 return weatherdata;
 }
 
- async function allDataOfDay(date){
+ async function allDataOfDay(city,date){
     const Date=date?date:getFormattedDate();
 
     const weatherresponse = await axios({
         method: "get",
         url: `https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${city}/${Date}?key=${process.env.API_KEY} `,
     });
-    const weatherdata = weatherresponse.data.days[0].hours;
+    console.log(weatherresponse);
+
+    const weatherdata = weatherresponse.data.days[0];
 return weatherdata;
 }
 
  async function setRedisDayData(city,date){
-await client.setEx("dayData",36000,JSON.stringify(await allDataOfDay(city)));
+await client.setEx(`dayData${city}${date}`,36000,JSON.stringify(await allDataOfDay(city,date)));
 }
 
- async function getRedisDayData(){
-    const data = await client.get("dayData");
+ async function getRedisDayData(city,date){
+    const data = await client.get(`dayData${city}${date}`);
     return JSON.parse(data);
 }
 
 
- async function setRedisWeekData(city,date){
-    await client.setEx("weekdata",36000,JSON.stringify(await weekData(city)));
+ async function setRedisWeekData(city){
+    await client.setEx(`weekdata${city}`,36000,JSON.stringify(await weekData(city)));
 
 }
 
- async function getRedisWeekData(){
-    const data = await client.get("weekdata");
+ async function getRedisWeekData(city){
+    const data = await client.get(`weekdata${city}`);
     return JSON.parse(data);
 }
 
 
 
 export async function getWeatherdaydata (city,date){
-const weatherdata = await getRedisDayData();
+const weatherdata = await getRedisDayData(city,date);
 if(weatherdata){
     return weatherdata;
 }
 
 else{
     await setRedisDayData(city,date);
-    return await getRedisDayData();
+    return await getRedisDayData(city,date);
 }
 }
 
 
 
 
-export async function getWeatherWeekdata (city,date){
-const weatherdata = await getRedisWeekData();
+export async function getWeatherWeekdata (city){
+const weatherdata = await getRedisWeekData(city);
 if(weatherdata){
     return weatherdata;
 
 }
 
 else{
-    await setRedisWeekData(city,date);
-    return await getRedisWeekData();
+    await setRedisWeekData(city);
+    return await getRedisWeekData(city);
 }
 }
 

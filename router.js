@@ -4,10 +4,9 @@ import client from "./redis.js";
 
 const router = new Router();
 
-router.get("/weekdata/:city/:date", async (req, res) => {
-  const { city, date } = req.params;
+router.get("/weekdata/:city", async (req, res) => {
+  const { city } = req.params;
   const weekdata = await getWeatherWeekdata(city, date);
-  client.set("weekdata", JSON.stringify(weekdata));
   res.json(weekdata);
 });
 
