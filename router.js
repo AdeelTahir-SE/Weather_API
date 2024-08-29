@@ -1,15 +1,20 @@
-import {Router} from "express"
-import {allDataOfDay,weekData} from "./weather-api.js"
-const router =new Router();
-router.get("/weekdata",async(req,res)=>{
-    const weekdata= await weekData();
-res.json(weekdata);
-});
-router.get("/alldataofday",async(req,res)=>{
-    const alldataofday= await allDataOfDay();
-    res.json(alldataofday)
+import { Router } from "express";
+import { getWeatherWeekdata, getWeatherdaydata } from "./weather-api.js";
+import client from "./redis.js";
+
+const router = new Router();
+
+router.get("/weekdata/:city/:date", async (req, res) => {
+  const { city, date } = req.params;
+  const weekdata = await getWeatherWeekdata(city, date);
+  client.set("weekdata", JSON.stringify(weekdata));
+  res.json(weekdata);
 });
 
-
+router.get("/alldataofday/:city/:date", async (req, res) => {
+  const { city, date } = req.params;
+  const alldataofday = await getWeatherdaydata(city, date);
+  res.json(alldataofday);
+});
 
 export default router;

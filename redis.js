@@ -1,6 +1,7 @@
 import { createClient } from 'redis';
-import dotenv from "dotenv"
+
 const client = createClient({
+  username: "default",
   password: 'ukp10CI3JBkJMb8Gv4faqWAViMecnvcr',
   socket: {
     host: 'redis-11370.c8.us-east-1-4.ec2.redns.redis-cloud.com',
@@ -12,27 +13,24 @@ client.on('connect', () => {
   console.log('Connected to Redis');
 });
 
-client.on('error', (err) => {
-  console.error('Redis error:', err);
+client.on('end', () => {
+  console.log('Redis client disconnected');
 });
 
-(async () => {
-  try {
-    // Connect to Redis
-    await client.connect();
+client.on('reconnecting', () => {
+  console.log('Reconnecting to Redis...');
+});
 
-    // Example: Setting a key-value pair
-    const setResult = await client.set('mykey', 'Hello, Redis!');
-    console.log('Set result:', setResult); // Should log 'OK'
+client.on('dataAccessed', (info) => {
+  console.log(`Data accessed: ${info.operation} key: ${info.key}`, info.data || info.value);
+});
 
-    // Example: Getting the value of a key
-    const getValue = await client.get('mykey');
-    console.log('Get result:', getValue); // Should log 'Hello, Redis!'
-
-  } catch (err) {
-    console.error('Error:', err);
-  } finally {
-    // Closing the connection
-    await client.quit();
+client.on('error', async (err) => {
+  console.error('Redis error:', err);
+  if (!client.isOpen) {
+    console.log('Attempting to reconnect to Redis...');
+    await client.connect().catch((err) => console.error('Redis reconnection failed:', err));
   }
-})();
+});
+
+export default client;
