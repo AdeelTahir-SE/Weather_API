@@ -11,28 +11,38 @@ function getFormattedDate() {
     const day = String(today.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   }
-
- async function weekData(city){
+  async function weekData(city) {
     const weatherresponse = await axios({
         method: "get",
-        url: `https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${city}?key=${process.env.API_KEY} `,
+        url: `https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${city}?key=${process.env.API_KEY}`,
     });
-    const weatherdata = weatherresponse.data.days.slice(0,7);
-return weatherdata;
+    console.log(weatherresponse.data); // Inspect the response structure
+    const weatherdata = weatherresponse.data.days.slice(0, 7);
+    return weatherdata.map(element=>{return{...element,address:weatherresponse.data.resolvedAddress}});
 }
 
- async function allDataOfDay(city,date){
-    const Date=date?date:getFormattedDate();
 
-    const weatherresponse = await axios({
-        method: "get",
-        url: `https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${city}/${Date}?key=${process.env.API_KEY} `,
-    });
-    console.log(weatherresponse);
 
-    const weatherdata = weatherresponse.data.days[0];
-return weatherdata;
+async function allDataOfDay(city, date) {
+    const formattedDate = date ? date : getFormattedDate();
+    try {
+        const weatherresponse = await axios({
+            method: "get",
+            url: `https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${city}/${formattedDate}?key=${process.env.API_KEY}`,
+        });
+
+        console.log(weatherresponse.data); // Inspect the response structure
+
+        const weatherdata = weatherresponse.data.days[0];
+        weatherdata.address = weatherresponse.data.resolvedAddress;
+
+        return weatherdata;
+    } catch (error) {
+        console.error('Error fetching weather data:', error);
+        throw error; // Re-throw the error if you want to handle it elsewhere
+    }
 }
+
 
  async function setRedisDayData(city,date){
 await client.setEx(`dayData${city}${date}`,36000,JSON.stringify(await allDataOfDay(city,date)));
@@ -83,71 +93,3 @@ else{
     return await getRedisWeekData(city);
 }
 }
-
-const weatherdata= [
-    "datetime",
-    "datetimeEpoch",
-    "tempmax",
-    "tempmin",
-    "temp",
-    "feelslikemax",
-    "feelslikemin",
-    "feelslike",
-    "dew",
-    "humidity",
-    "precip",
-    "precipprob",
-    "precipcover",
-    "preciptype",
-    "snow",
-    "snowdepth",
-    "windgust",
-    "windspeed",
-    "winddir",
-    "pressure",
-    "cloudcover",
-    "visibility",
-    "solarradiation",
-    "solarenergy",
-    "uvindex",
-    "severerisk",
-    "sunrise",
-    "sunriseEpoch",
-    "sunset",
-    "sunsetEpoch",
-    "moonphase",
-    "conditions",
-    "description",
-    "icon",
-    "stations",
-    "source"
-  ]
-
-  const weatherdatahours =[
-    "datetime",
-    "datetimeEpoch",
-    "temp",
-    "feelslike",
-    "humidity",
-    "dew",
-    "precip",
-    "precipprob",
-    "snow",
-    "snowdepth",
-    "preciptype",
-    "windgust",
-    "windspeed",
-    "winddir",
-    "pressure",
-    "visibility",
-    "cloudcover",
-    "solarradiation",
-    "solarenergy",
-    "uvindex",
-    "severerisk",
-    "conditions",
-    "icon",
-    "stations",
-    "source"
-  ]
-  

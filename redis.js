@@ -11,9 +11,8 @@ const client = createClient({
 
 client.on('connect',async () => {
   console.log('Connected to Redis');
-  await client.flushAll();
-
-});
+}
+);
 
 client.on('end', () => {
   console.log('Redis client disconnected');

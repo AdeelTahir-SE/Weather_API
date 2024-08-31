@@ -2,20 +2,20 @@ import express from "express";
 import router from "./router.js";
 import { rateLimit } from "express-rate-limit";
 import client from "./redis.js";
-
+import cors from "cors"
 const limiter = rateLimit({
   windowMs: 60 * 10 * 1000, // 10 minutes
-  max: 5, // limit each IP to 5 requests per windowMs
+  max: 100, // limit each IP to 5 requests per windowMs
   message: "You have made too many requests. Please try again after 15 minutes."
 });
 
 const app = express();
-
+app.use(cors())
 app.use(express.json());
 
-client.connect().then(() => {
+client.connect().then(async() => {
   console.log("Connected to Redis");
-
+await client.flushAll()
   app.use("/api",limiter, router);
 
   app.listen(3000, () => {
