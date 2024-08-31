@@ -13,13 +13,37 @@ function getFormattedDate() {
   }
   async function weekData(city) {
     const weatherresponse = await axios({
-        method: "get",
-        url: `https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${city}?key=${process.env.API_KEY}`,
+      method: "get",
+      url: `https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${city}?key=${process.env.API_KEY}`,
     });
     console.log(weatherresponse.data); // Inspect the response structure
     const weatherdata = weatherresponse.data.days.slice(0, 7);
-    return weatherdata.map(element=>{return{...element,address:weatherresponse.data.resolvedAddress}});
-}
+    
+    return weatherdata.map((element) => {
+      return {
+        datetimeEpoch: element.datetimeEpoch,
+        description: element.description,
+        conditions: element.conditions,
+        temp: element.temp,
+        visibility: element.visibility,
+        datetime: element.datetime,
+        humidity: element.humidity,
+        feelslike: element.feelslike,
+        dew: element.dew,
+        windspeed: element.windspeed,
+        windgust: element.windgust,
+        pressure: element.pressure,
+        cloudcover: element.cloudcover,
+        solarradiation: element.solarradiation,
+        uvindex: element.uvindex,
+        moonphase: element.moonphase,
+        sunrise: element.sunrise,
+        sunset: element.sunset,
+        address: weatherresponse.data.resolvedAddress
+      };
+    });
+  }
+  
 
 
 
@@ -35,7 +59,7 @@ async function allDataOfDay(city, date) {
 
         const weatherdata = weatherresponse.data.days[0];
         weatherdata.address = weatherresponse.data.resolvedAddress;
-
+        
         return weatherdata;
     } catch (error) {
         console.error('Error fetching weather data:', error);

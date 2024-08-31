@@ -15,7 +15,6 @@ app.use(express.json());
 
 client.connect().then(async() => {
   console.log("Connected to Redis");
-await client.flushAll()
   app.use("/api",limiter, router);
 
   app.listen(3000, () => {
